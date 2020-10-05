@@ -2,10 +2,10 @@ name: CCIO SpeedTest-CLI
 on:
   push:
     branches: 
-      - master
+      - main
   pull_request:
     branches: 
-      - master
+      - main
   schedule:
     - cron: '0 12 * 7 *'
 jobs:
