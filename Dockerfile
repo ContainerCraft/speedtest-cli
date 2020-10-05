@@ -7,3 +7,4 @@ RUN set -ex \
     && echo
 
 ENTRYPOINT ["speedtest"]
+CMD ["--share"]
