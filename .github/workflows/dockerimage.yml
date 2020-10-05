@@ -1,0 +1,48 @@
+name: CCIO SpeedTest-CLI
+on:
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches: 
+      - master
+  schedule:
+    - cron: '0 12 * 7 *'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Variable | Export Build Date
+      run: |
+        export varrundate="$(date +%y%m%d%I%M%S)"
+        echo "::set-env name=varrundate::$varrundate"
+    - name: Variable | Git Commit Hash
+      run: |
+        export githash="$(git log -1 --pretty=%h)"
+        echo "::set-env name=githash::$githash"
+    - name: Quay.io Login
+      run: |
+        echo "${{ secrets.DOCKERHUB_PASSWD }}" | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin quay.io 
+    - name: DockerHub Login
+      run: |
+        echo "${{ secrets.DOCKERHUB_PASSWD }}" | docker login -u ${{ secrets.DOCKERHUB_USER }} --password-stdin docker.io 
+    - name: Image Build | SpeedTest CLI
+      run: |
+        docker build . \
+            --force-rm \
+            --file ./Dockerfile \
+            --tag quay.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli \
+            --tag quay.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest \
+            --tag quay.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest-${{ env.varrundate }}-${{ env.githash }} \
+            --tag docker.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli \
+            --tag docker.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest \
+            --tag docker.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest-${{ env.varrundate }}-${{ env.githash }}
+    - name: Image Push | speedtest-cli
+      run: |
+        docker push quay.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli;                                 \
+        docker push quay.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest;                                 \
+        docker push quay.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest-${{ env.varrundate }}-${{ env.githash }}; \
+        docker push docker.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli;                                 \
+        docker push docker.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest;                                 \
+        docker push docker.io/${{ secrets.DOCKERHUB_ORGANIZATION }}/speedtest-cli:latest-${{ env.varrundate }}-${{ env.githash }};
